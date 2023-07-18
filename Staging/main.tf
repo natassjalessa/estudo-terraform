@@ -42,6 +42,33 @@ resource "azurerm_subnet" "internal" {
   address_prefixes = ["10.0.1.0/24"]
 }
 
+resource "azurerm_public_ip" "default" {
+  name                = "${var.vm}-ip"
+  resource_group_name = var.rg
+  location            = var.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_security_group" "default" {
+  name                = "${var.vm}-nsg"
+  resource_group_name = var.rg
+  location            = var.location
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+
+#Interface Rede
 resource "azurerm_network_interface" "default" {
   name                = "${var.vm}-nic"
   location            = var.location
@@ -54,6 +81,7 @@ resource "azurerm_network_interface" "default" {
   }
 }
 
+#Virtual Machine
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.vm}01"
   location              = var.location
@@ -74,7 +102,7 @@ resource "azurerm_virtual_machine" "main" {
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "${var.vm}-ipconfig"
+    computer_name  = var.vm
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
