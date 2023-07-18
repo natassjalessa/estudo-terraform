@@ -42,6 +42,7 @@ resource "azurerm_subnet" "internal" {
   address_prefixes = ["10.0.1.0/24"]
 }
 
+#IP 
 resource "azurerm_public_ip" "default" {
   name                = "${var.vm}-ip"
   resource_group_name = var.rg
@@ -74,11 +75,18 @@ resource "azurerm_network_interface" "default" {
   location            = var.location
   resource_group_name = var.rg
 
+
   ip_configuration {
     name                          = "${var.vm}-ipconfig"
     subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id = azurerm_public_ip.default.id
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "default" {
+  network_interface_id = azurerm_network_interface.default.id
+  network_security_group_id = azurerm_network_security_group.default.id 
 }
 
 #Virtual Machine
